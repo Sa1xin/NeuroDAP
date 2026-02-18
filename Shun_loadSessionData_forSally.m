@@ -1,4 +1,4 @@
-% Shun_loadSessionData_forSally
+% Shun_loadSessionData_forSall
 % Shun Li, 4/2/2022
 
 %% Single session analysis
@@ -8,12 +8,13 @@ addpath(genpath("C:\Users\sallyx\Documents\GitHub\NeuroDAP\"));
 
 % Select sessions via uipickfiles
 sessionList = uipickfiles('FilterSpec',osPathSwitch('/Volumes/Neurobio/MICROSCOPE/Shun/Project misc/Recordings'))';
+% sessionList = uipickfiles('FilterSpec',osPathSwitch('/Volumes/Neurobio/NEUROBIOLOGY SHARED/Sabatini Lab/Shun/withSally'))';
 errorSessionIdx = [];
 
 % Select anlaysis params
 [analysisParams,canceled] = inputAnalysisParams(sessionList,...
                                 reloadAll=false,...
-                                recordLJ='[1 1 0]',...
+                                recordLJ='[1 0 0]',...
                                 plotPhotometry=true,...
                                 plotBehavior=true,...
                                 withPhotometryNI=false);
@@ -24,7 +25,7 @@ for s = 1:length(sessionList)
 end
 
 
-% Run each session
+%% Run each session
 for s = 1:length(sessionList)
     close all;
     clearvars -except s sessionList errorSessionIdx analysisParams sessionParams taskList redStimPatternList blueStimPatternList withPhotometryNI plotPhotometry reloadAll

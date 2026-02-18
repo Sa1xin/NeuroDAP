@@ -151,7 +151,7 @@ taskRange = {'Reward1 (paAIP2)','Punish1 (paAIP2)'};
 % taskRange = {'Reward2 (Ctrl)','Punish2 (paAIP2)'};
 % statsTypes = {'stageMax','stageMin'}; ylabelList = {'Max DA response during cue','Max DA response during cue'};
 statsTypes = {'stageAmp','stageAmp'}; ylabelList = {'Amp DA response during cue','Amp DA response during cue'};
-ylim = [-0.5,2; -0.5,3];
+ylimit = [-0.5,2; -0.5,3];
 
 % Second part
 % taskRange = {'Punish (paAIP2)'};
@@ -174,7 +174,7 @@ combinedStats = getGroupedTrialStats(animals,statsTypes,...
                             signalRange=signalRange);
 
 initializeFig(.7,.7); tiledlayout('flow');
-results = plotGroupedTrialStats(combinedStats,ylabelList,groupSize=10,color=colorList,ylim=ylim,...
+results = plotGroupedTrialStats(combinedStats,ylabelList,groupSize=10,color=colorList,ylim=ylimit,...
                                 xlimIdx=2,xlim=[1,150],plotIndividual=false);
 
 % saveFigures(gcf,'Summary_CSvsTrialsGrouped_Pairing1_Amp',...

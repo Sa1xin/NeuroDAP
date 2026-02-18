@@ -18,7 +18,7 @@ arguments
 
     options.timeRange double = [-10,50]
 
-    % options.depthLineWidth double = [2,1.5,1,0.5,0.1,0.05,0.01];
+    options.depthLineWidth = 'scale' %[2,1.5,1,0.5,0.1,0.05,0.01];
 end
 
 %% Setup
@@ -45,32 +45,6 @@ end
 % Remove empty rows of cells
 cells = rmmissing(cells,DataVariables='Session');
 
-% % Define time window
-% cellsOptions = cells{1,'Options'}{1};
-% if options.outputFs ~= cellsOptions.outputFs
-%     warning('analyzeSlice_DMD: Default options.outputFs differs from outputFs extracted from cells_DMD. Using cells_DMD value instead!');
-%     options.outputFs = cellsOptions.outputFs;
-% end
-% if options.timeRange ~= cellsOptions.timeRange
-%     eventSample = abs(cellsOptions.timeRange(1))*(cellsOptions.outputFs/1000) + 1;
-%     plotFirstSample = eventSample + options.timeRange(1)*(cellsOptions.outputFs/1000);
-%     plotLastSample = eventSample + options.timeRange(2)*(cellsOptions.outputFs/1000);
-%     plotWindowLength = plotLastSample - plotFirstSample + 1;
-%     plotWindowTime = linspace(options.timeRange(1),options.timeRange(2),plotWindowLength);
-% else
-%     if isfield(cellsOptions,'plotWindowTime')
-%         plotWindowTime = cellsOptions.plotWindowTime;
-%         plotWindowLength = length(plotWindowTime);
-%     else
-%         if isfield(cellsOptions,'plotWindowLength'); plotWindowLength = cellsOptions.plotWindowLength;
-%         else; plotWindowLength = (options.timeRange(2)-options.timeRange(1))* options.outputFs/1000 + 1;
-%         end
-%         plotWindowTime = linspace(options.timeRange(1),options.timeRange(2),plotWindowLength);
-%     end
-%     eventSample = find(plotWindowTime==0);
-%     plotFirstSample = 1; plotLastSample = plotWindowLength;
-% end
-
 %% Plot summary figure for each search
 
 if options.plotSearch
@@ -92,6 +66,7 @@ if options.plotSearch
                          savePNG=false,savePDF=true,saveFIG=false);
         end
     end
+    disp('Finished: plotting search summary for all cells');
 end
 
 %% Plot search comparisions
@@ -102,9 +77,9 @@ if options.plotPairs
 
     for cellIdx = 1:size(cells,1)
         c = cellList(cellIdx);
-        disp(['Ongoing: plotting search pairs for cell',num2str(c)]);
         curCell = cells(cells.Cell == c,:);
         allPairs = curCell.('Difference map'){1}.diffVhold;
+        disp(['Ongoing: plotting search pairs for cell ',num2str(c)]);
 
         for pairIdx = 1:length(allPairs)
             % Plot a figure for each search depth, organize depth figures of each 
@@ -116,6 +91,7 @@ if options.plotPairs
                          savePNG=false,savePDF=true,saveFIG=false);
         end
     end
+    disp('Finished: plotting search pairs for all cells');
 end
 
 close all

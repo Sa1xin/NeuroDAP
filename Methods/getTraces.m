@@ -45,6 +45,13 @@ if ~options.sameSystem
         if ~isfield(params.session,'baselineSystem'); options.eventSystem = 'ni';
         else; options.eventSystem = params.session.baselineSystem; end
     end
+
+    % added by Emily Ferenczi 7/29/25 to make compatible with news rig
+    if isfield(options,'eventSystem')
+        if ~strcmp(params.session.baselineSystem,options.eventSystem)
+            options.eventSystem = params.session.baselineSystem; 
+        end
+    end
     
     % 1. Initialize event and signal system time
     % 1.1 Define event system time
@@ -120,7 +127,7 @@ for i = 1:length(eventInSec)
     if firstBin == 0; firstBin = 1; end
     lastBin = firstBin + length(timestamp) - 1;
     % eventBin = floor(eventInSec(i)*signalFs);
-    if options.baseline ~= 0
+    if any(options.baseline ~= 0)
         firstBin_baseline = round((eventInSec(i) + options.baseline(1))*signalFs);
         lastBin_baseline = round((eventInSec(i) + options.baseline(2))*signalFs);
         baseline = mean(signal(firstBin_baseline:lastBin_baseline));

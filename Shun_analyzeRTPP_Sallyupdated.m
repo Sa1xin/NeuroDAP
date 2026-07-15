@@ -11,19 +11,22 @@ clear; close all;
 addpath(genpath("C:\Users\sallyx\Documents\GitHub\NeuroDAP\"));
 addpath(genpath("C:\Users\sallyx\HMS Dropbox\Jia Yin Xiao\ForSally"));
 addpath("C:\Users\sallyx\Documents\MATLAB\slanCM")
+addpath("\\research.files.med.harvard.edu\Neurobio\GintyLab\Xiao\Behavior\RTPP")
 [twoColors,~,~,~,~,~,bluePurpleRed] = loadColors;
 
 % filename = uipickfiles('FilterSpec',osPathSwitch('/Volumes/Neurobio/MICROSCOPE/Shun/Project misc/Recordings'),...
 %                         'Prompt','Select an date folder');
-filename = uipickfiles('FilterSpec','C:\Users\sallyx\HMS Dropbox\Jia Yin Xiao\ForSally', ...
+% filename = uipickfiles('FilterSpec','C:\Users\sallyx\HMS Dropbox\Jia Yin Xiao\ForSally', ...
+%     'Prompt','Select an date folder');
+filename = uipickfiles('FilterSpec','\\research.files.med.harvard.edu\Neurobio\GintyLab\Xiao\Behavior\RTPP', ...
     'Prompt','Select an date folder');
 
 sessionList = dir(filename{1});
 sessionList = sessionList(~ismember({sessionList.name},{'.','..'}));
-summaryMask = contains({sessionList.name}, {'Summary','3mW','8mW'});  %Change for each experiment!!!
+summaryMask = contains({sessionList.name}, {'D2'});  %Change for each experiment!!!
 sessionList = sessionList(~summaryMask);
 nSessions = length(sessionList);
-mid_point = 350; %find the mid point
+mid_point = 195; %find the mid point
 extractedNames = regexp(sessionList(1).folder, '(?<=ForSally\\)[^\\]+', 'match', 'once'); %for figure title
 disp(extractedNames)
 %% Process data
@@ -167,8 +170,8 @@ for s = 1:nSessions
         legend({'Stim ON', 'Stim OFF'}, 'Location', 'northeast');
     end
     
-    xlim([300,650]); xlabel('X Position');
-    ylim([0,700]);ylabel('Y Position');
+    xlim([0,650]); xlabel('X Position');
+    ylim([20,400]);ylabel('Y Position');
     title(cur_name);
 
     % Plot time in each chamber

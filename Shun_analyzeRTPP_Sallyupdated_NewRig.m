@@ -16,22 +16,22 @@ addpath("\\research.files.med.harvard.edu\Neurobio\GintyLab\Xiao\Behavior\RTPP")
 
 % filename = uipickfiles('FilterSpec',osPathSwitch('/Volumes/Neurobio/MICROSCOPE/Shun/Project misc/Recordings'),...
 %                         'Prompt','Select an date folder');
-filename = uipickfiles('FilterSpec','C:\Users\sallyx\HMS Dropbox\Jia Yin Xiao\ForSally', ...
-    'Prompt','Select an date folder');
-% filename = uipickfiles('FilterSpec','\\research.files.med.harvard.edu\Neurobio\GintyLab\Xiao\Behavior\RTPP', ...
+% filename = uipickfiles('FilterSpec','C:\Users\sallyx\HMS Dropbox\Jia Yin Xiao\ForSally', ...
 %     'Prompt','Select an date folder');
+filename = uipickfiles('FilterSpec','\\research.files.med.harvard.edu\Neurobio\GintyLab\Xiao\Behavior\RTPP', ...
+    'Prompt','Select an date folder');
 
 sessionList = dir(filename{1});
 sessionList = sessionList(~ismember({sessionList.name},{'.','..'}));
-summaryMask = contains({sessionList.name}, {'lightoff'});  %Change for each experiment!!!
+summaryMask = contains({sessionList.name}, {'260911'});  %Change for each experiment!!!
 sessionList = sessionList(~summaryMask);
 nSessions = length(sessionList);
-mid_point = 350; %find the mid point
+mid_point = 375; %find the mid point
 extractedNames = regexp(sessionList(1).folder, '(?<=ForSally\\)[^\\]+', 'match', 'once'); %for figure title
 disp(extractedNames)
 %% Process data
 
-session_cutoffs = [NaN, NaN; NaN, NaN; NaN, NaN; NaN, NaN];%[0, 0, 0, 0]; % in min; 10.56
+session_cutoffs = [NaN, NaN; NaN, NaN; NaN, NaN; 0, 10];%[0, 0, 0, 0]; % in min; 10.56
 Fs = 20; % frame rate
 
 sessions = struct([]);
@@ -67,10 +67,16 @@ for s = 1:nSessions
 
     %Detect stim side if controlled mid point
     idx_true = find(strcmp(cur_data.Item3, 'True'));
-    if median(cur_data{idx_true,3}) <= mid_point
+    idx_false = find(strcmp(cur_data.Item3, 'False'));
+    % if median(cur_data{idx_true,2}) <= mid_point
+    %     sessions(s).stimside = 'left';
+    % else
+    %     sessions(s).stimside = 'right'; 
+    % end
+    if median(cur_data{idx_true,2}) <= median(cur_data{idx_false,2})
         sessions(s).stimside = 'left';
     else
-        sessions(s).stimside = 'right'; 
+        sessions(s).stimside = 'right';
     end
 
 end
@@ -79,8 +85,16 @@ disp('Finished: animal data loaded');
 
 %% Plot summary figure
 
-initializeFig(0.5,1); tiledlayout(1,nSessions+1);
+%initializeFig(1,1); tiledlayout(nSessions+1,1);
 %stim_side = 'left';
+figure(1)
+clf
+set(gcf, 'Units', 'pixels', 'Position', [100, 100, 900, 1200]);
+
+t = tiledlayout(nSessions, 1);
+t.TileSpacing = 'compact';
+t.Padding = 'compact';
+
 noMovementThreshold = 20;
 
 leftColor = [156, 219, 17]./255;
@@ -88,6 +102,7 @@ rightColor = [144, 126, 171]./255;
 stimColor = [7, 162, 222]./255;
 ctrlColor = [.3 .3 .3];
 
+stim_sides = {};
 
 
 for s = 1:nSessions
@@ -106,12 +121,13 @@ for s = 1:nSessions
     else
     stim_side = sessions(s).stimside;
     end
+    stim_sides{s} = stim_side;
 
     output_results(s).stimside = stim_side;
 
     X_raw = cur_data.Item2_X;
     Y_raw = cur_data.Item2_Y;
-    Y_midpoint = mid_point; %(min(Y_raw)+max(Y_raw))/2;
+    X_midpoint = (min(X_raw) + max(X_raw))/2; %mid_point; %(min(Y_raw)+max(Y_raw))/2;
 
     % Drop potential sleep time
     % staticWindow = getStaticPeriod(X_raw, Y_raw,noMovementThreshold=3,windowDuration=30);
@@ -135,51 +151,52 @@ for s = 1:nSessions
 
     % Check if there is background contaminating recognition
     % Create logical masks for both conditions; only affect X Y plotting
+
     if strcmp(sessions(s).stimside, 'right')
-        cond1 = strcmp(updated_data.Item3, 'True')  & updated_data.Item2_Y < mid_point;
-        cond2 = strcmp(updated_data.Item3, 'False') & updated_data.Item2_Y > mid_point;
+        cond1 = strcmp(updated_data.Item3, 'True')  & updated_data.Item2_X < X_midpoint;
+        cond2 = strcmp(updated_data.Item3, 'False') & updated_data.Item2_X > X_midpoint;
     else
-        cond1 = strcmp(updated_data.Item3, 'True')  & updated_data.Item2_Y > mid_point;
-        cond2 = strcmp(updated_data.Item3, 'False') & updated_data.Item2_Y < mid_point;
+        cond1 = strcmp(updated_data.Item3, 'True')  & updated_data.Item2_X > X_midpoint;
+        cond2 = strcmp(updated_data.Item3, 'False') & updated_data.Item2_X < X_midpoint;
     end
     rows_to_remove = cond1 | cond2;
     if contains(cur_name,'RTPP')
         X = X(~rows_to_remove);
         Y = Y(~rows_to_remove);
     end
-    %
+
 
     sessions(s).totalT = length(Y);
     sessions(s).updata = updated_data(~rows_to_remove,:);
 
-    % X = X_raw; Y = Y_raw;
+    X = X_raw; Y = Y_raw;
     
     % Plot the trajectory
     nexttile;
     if ~contains(cur_name,'RTPP')
-        plot(X(Y>=Y_midpoint), Y(Y>=Y_midpoint), Color=rightColor, LineWidth=2); hold on;
-        plot(X(Y<Y_midpoint), Y(Y<Y_midpoint), Color=leftColor, LineWidth=2);
+        plot(X(X>=X_midpoint), Y(X>=X_midpoint), Color=rightColor, LineWidth=2); hold on;
+        plot(X(X<X_midpoint), Y(X<X_midpoint), Color=leftColor, LineWidth=2);
         legend({'Right', 'Left'}, 'Location', 'northeast');
     elseif strcmpi(stim_side,'right')
-        plot(X(Y<=Y_midpoint), Y(Y<=Y_midpoint), Color=ctrlColor, LineWidth=2); hold on;
-        plot(X(Y>Y_midpoint), Y(Y>Y_midpoint), Color=stimColor, LineWidth=2);
+        plot(X(X<=X_midpoint), Y(X<=X_midpoint), Color=ctrlColor, LineWidth=2); hold on;
+        plot(X(X>X_midpoint), Y(X>X_midpoint), Color=stimColor, LineWidth=2);
         legend({'Stim OFF', 'Stim ON'}, 'Location', 'northeast');
     elseif strcmpi(stim_side,'left')
-        plot(X(Y<=Y_midpoint), Y(Y<=Y_midpoint), Color=stimColor, LineWidth=2); hold on;
-        plot(X(Y>Y_midpoint), Y(Y>Y_midpoint), Color=ctrlColor, LineWidth=2);
+        plot(X(X<=X_midpoint), Y(X<=X_midpoint), Color=stimColor, LineWidth=2); hold on;
+        plot(X(X>X_midpoint), Y(X>X_midpoint), Color=ctrlColor, LineWidth=2);
         legend({'Stim ON', 'Stim OFF'}, 'Location', 'northeast');
     end
     
-    xlim([300,650]); xlabel('X Position');
-    ylim([0,700]);ylabel('Y Position');
+    xlim([0,700]); xlabel('X Position');
+    ylim([0,400]);ylabel('Y Position');
     title(cur_name);
 
     % Plot time in each chamber
     if ~contains(cur_name,'RTPP')
         if strcmpi(stim_side,'right')
-            stim = length(find(Y>=Y_midpoint));
+            stim = length(find(X>=X_midpoint));
         elseif strcmpi(stim_side,'left')
-            stim = length(find(Y<=Y_midpoint));
+            stim = length(find(X<=X_midpoint));
         end
     else
         stim = sum(strcmp(updated_data.Item3,'True'));
@@ -187,8 +204,8 @@ for s = 1:nSessions
     
     stim_pct(s) = stim/length(updated_data.Item3) * 100;
 
-    right_side = find(Y>=Y_midpoint);
-    right_pct(s) = length(right_side)/length(Y)*100;
+    right_side = find(X>=X_midpoint);
+    right_pct(s) = length(right_side)/length(X)*100;
 
 
     output_results(s).stim_percentage = stim/length(updated_data.Item3) * 100;
@@ -201,7 +218,7 @@ end
 %nexttile;
 figure(2)
 set(figure(2), 'Units', 'pixels', 'Position', [100, 100, 500, 800]);
-mergedLabels = cellfun(@(n, s) [n, ' - ', s], {sessions.name}, {sessions.stimside}, 'UniformOutput', false);
+mergedLabels = cellfun(@(n, s) [n, ' - ', s], {sessions.name}, stim_sides, 'UniformOutput', false);
 for s = 1:nSessions
     if ~contains(sessions(s).name,'RTPP'); color = ctrlColor;
     else; color = stimColor; end
@@ -213,6 +230,7 @@ ylabel('Time spent in stimulated side (%)');
 
 
 title(extractedNames)
+hold off;
 
 %% Plot left and right for direct comparison (conditioned)
 figure(3)
@@ -293,8 +311,8 @@ print(svg_path, '-dsvg');
 exportgraphics(gcf, tif_path, 'Resolution', 300);
 %% Heatmaps for all sessions
 squareSize = 15;
-edgesX = linspace(300, 640, round((640 - 300) / squareSize));
-edgesY = linspace(0, 700, round(700 / squareSize));
+edgesX = linspace(30,710, round((710-30) / squareSize));
+edgesY = linspace(0,350, round(350 / squareSize));
 
 numSessions = length(sessions);
 counts_all = cell(numSessions, 1);
@@ -335,7 +353,7 @@ for i = 1:numSessions
 
     % Optional: add white dashed line
     hold on;
-    plot([edgesX(1) edgesX(end)], [mid_point mid_point], 'w--', 'LineWidth', 2);
+    plot([X_midpoint, X_midpoint], [edgesY(1) edgesY(end)], 'w--', 'LineWidth', 2);
     hold off;
 end
 
